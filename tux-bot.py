@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 # Cargar las variables de entorno
 load_dotenv()
 
-# Aquí cargamos el token de nuestro bot desde el archivo .env
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 # Comando /menu para mostrar el menú principal
@@ -19,7 +18,6 @@ async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    # Si se activa desde /menu o desde un botón "Volver", respondemos según corresponda
     if update.message:
         await update.message.reply_text(
             "👋 ¡Bienvenido a **TuxSentinel**!\n\n"
@@ -98,13 +96,14 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == 'linux_distribuciones':
         await query.edit_message_text(
             text="🌍 **Distribuciones de Linux**:\n\n"
-                 "🔸 **Ubuntu**: Ideal para principiantes, con una gran comunidad y soporte extenso.\n"
-                 "🔸 **Fedora**: Famosa por estar a la vanguardia en software de código abierto.\n"
-                 "🔸 **Debian**: Base de muchas otras distribuciones, conocida por su estabilidad.\n"
-                 "🔸 **Arch Linux**: Para usuarios avanzados, te permite construir tu sistema desde cero.\n"
-                 "🔸 **Red Hat Enterprise Linux**: Utilizado en entornos empresariales, robusto y con soporte oficial.\n"
-                 "🔸 **CentOS**: Versión gratuita de Red Hat, popular en servidores.\n\n"
-                 "Cada distribución tiene un enfoque y propósito distinto. ¡Explora y encuentra la tuya!"
+                 "🔸 `Ubuntu`: Ideal para principiantes, con una gran comunidad y soporte extenso.\n"
+                 "🔸 `Fedora`: Famosa por estar a la vanguardia en software de código abierto.\n"
+                 "🔸 `Debian`: Base de muchas otras distribuciones, conocida por su estabilidad.\n"
+                 "🔸 `Arch Linux`: Para usuarios avanzados, te permite construir tu sistema desde cero.\n"
+                 "🔸 `Red Hat Enterprise Linux`: Utilizado en entornos empresariales, robusto y con soporte oficial.\n"
+                 "🔸 `CentOS`: Versión gratuita de Red Hat, popular en servidores.\n\n"
+                 "Cada distribución tiene un enfoque y propósito distinto. ¡Explora y encuentra la tuya!",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_linux')]])
         )
     elif query.data == 'linux_comandos':
         await query.edit_message_text(
@@ -118,7 +117,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔹 `mv [origen] [destino]`: Mover o renombrar archivos o directorios.\n"
                  "🔹 `chmod [permisos] [archivo]`: Cambiar los permisos de un archivo o directorio.\n"
                  "🔹 `ps`: Listar los procesos en ejecución.\n\n"
-                 "Con estos comandos, ¡dominarás lo básico de la terminal en poco tiempo!"
+                 "Con estos comandos, ¡dominarás lo básico de la terminal en poco tiempo!",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_linux')]])
         )
     elif query.data == 'linux_instalacion':
         await query.edit_message_text(
@@ -129,7 +129,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "3️⃣ **Inicia desde el USB**: Configura la BIOS para arrancar desde el USB.\n"
                  "4️⃣ **Instala Linux**: Sigue las instrucciones del instalador. Puedes elegir entre instalar junto a otro sistema operativo o utilizar todo el disco.\n"
                  "5️⃣ **Configura tu sistema**: Después de la instalación, configura el sistema según tus necesidades.\n\n"
-                 "¡Ya estarás listo para disfrutar de la libertad que ofrece Linux!"
+                 "¡Ya estarás listo para disfrutar de la libertad que ofrece Linux!",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_linux')]])
         )
 
     # Sección Hacking
@@ -148,7 +149,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "- Nmap\n"
                  "- Wireshark\n"
                  "- Burp Suite\n\n"
-                 "El hacking ético es una parte fundamental de la ciberseguridad moderna."
+                 "El hacking ético es una parte fundamental de la ciberseguridad moderna.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_hacking')]])
         )
     elif query.data == 'hacking_herramientas':
         await query.edit_message_text(
@@ -160,7 +162,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔹 **John the Ripper**: Herramienta para crackeo de contraseñas.\n"
                  "🔹 **Burp Suite**: Plataforma para pruebas de seguridad de aplicaciones web.\n"
                  "🔹 **Aircrack-ng**: Conjunto de herramientas para evaluar la seguridad de redes WiFi.\n\n"
-                 "Estas herramientas son usadas tanto por profesionales de la seguridad como por hackers éticos."
+                 "Estas herramientas son usadas tanto por profesionales de la seguridad como por hackers éticos.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_hacking')]])
         )
     elif query.data == 'hacking_tecnicas':
         await query.edit_message_text(
@@ -171,7 +174,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔸 **Cross-Site Scripting (XSS)**: Inyección de scripts en páginas web vistas por otros usuarios.\n"
                  "🔸 **Ataque de Fuerza Bruta**: Probar combinaciones de contraseñas hasta encontrar la correcta.\n"
                  "🔸 **Man-in-the-Middle (MitM)**: Interceptar y alterar la comunicación entre dos partes.\n\n"
-                 "Conocer estas técnicas es clave para defenderse y mitigar posibles ataques."
+                 "Conocer estas técnicas es clave para defenderse y mitigar posibles ataques.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_hacking')]])
         )
 
     # Sección Ciberseguridad
@@ -183,7 +187,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔒 **Disponibilidad**: Asegurar que los sistemas y datos estén disponibles para su uso cuando se necesiten.\n"
                  "🔒 **Autenticación**: Verificación de la identidad de usuarios, dispositivos o sistemas.\n"
                  "🔒 **Autorización**: Control de acceso para asegurar que los usuarios solo tengan acceso a los recursos necesarios.\n\n"
-                 "Estos son los pilares fundamentales sobre los que se construye la seguridad en la información."
+                 "Estos son los pilares fundamentales sobre los que se construye la seguridad en la información.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_ciberseguridad')]])
         )
     elif query.data == 'ciberseguridad_practicas':
         await query.edit_message_text(
@@ -193,7 +198,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔑 **Mantén el software actualizado**: Instala las actualizaciones de seguridad tan pronto estén disponibles.\n"
                  "🔑 **Realiza copias de seguridad regularmente**: Protege tus datos contra pérdida o corrupción.\n"
                  "🔑 **Educa a los usuarios**: La formación es clave para evitar ataques de ingeniería social.\n\n"
-                 "Seguir estas prácticas ayudará a protegerte contra las amenazas más comunes."
+                 "Seguir estas prácticas ayudará a protegerte contra las amenazas más comunes.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_ciberseguridad')]])
         )
     elif query.data == 'ciberseguridad_noticias':
         await query.edit_message_text(
@@ -202,7 +208,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "- **Nuevo ataque de ransomware afecta a miles de empresas en todo el mundo**.\n"
                  "- **Vulnerabilidad crítica descubierta en software ampliamente utilizado**.\n"
                  "- **Aumento de ataques de phishing durante la pandemia**.\n\n"
-                 "Mantente al día con las últimas noticias para estar siempre protegido."
+                 "Mantente al día con las últimas noticias para estar siempre protegido.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_ciberseguridad')]])
         )
 
     # Sección Malware
@@ -215,7 +222,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔹 **Spyware**: Monitorea las actividades del usuario y roba información sin su conocimiento.\n"
                  "🔹 **Adware**: Muestra anuncios no deseados y a veces recolecta datos del usuario.\n"
                  "🔹 **Worms**: Se replica a sí mismo para propagarse a otros sistemas sin intervención del usuario.\n\n"
-                 "Conocer estos tipos de malware es crucial para poder detectarlos y eliminarlos a tiempo."
+                 "Conocer estos tipos de malware es crucial para poder detectarlos y eliminarlos a tiempo.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_malware')]])
         )
     elif query.data == 'malware_proteccion':
         await query.edit_message_text(
@@ -225,7 +233,8 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔐 **No abras archivos sospechosos**: Si no conoces el origen de un archivo, es mejor no abrirlo.\n"
                  "🔐 **Evita hacer clic en enlaces desconocidos**: Podrían llevar a sitios maliciosos.\n"
                  "🔐 **Realiza copias de seguridad regularmente**: Así podrás restaurar tu sistema en caso de infección.\n\n"
-                 "Estas prácticas son esenciales para protegerte contra la mayoría de los ataques de malware."
+                 "Estas prácticas son esenciales para protegerte contra la mayoría de los ataques de malware.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_malware')]])
         )
     elif query.data == 'malware_casos':
         await query.edit_message_text(
@@ -235,17 +244,14 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "🔸 **Stuxnet (2010)**: Malware dirigido a sistemas industriales, utilizado para sabotear el programa nuclear de Irán.\n"
                  "🔸 **Zeus (2007)**: Troyano bancario que robó millones de dólares de cuentas en línea.\n"
                  "🔸 **CryptoLocker (2013)**: Uno de los primeros ransomware modernos que encriptó archivos y exigió un pago en Bitcoin.\n\n"
-                 "Estos casos subrayan la importancia de estar siempre vigilante y preparado."
+                 "Estos casos subrayan la importancia de estar siempre vigilante y preparado.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_malware')]])
         )
 
 def main():
-    # Configuramos el bot con nuestro token
     application = ApplicationBuilder().token(TOKEN).build()
 
-    # Comando /menu para desplegar el menú principal
     application.add_handler(CommandHandler("menu", menu))
-
-    # Manejadores para los menús y submenús
     application.add_handler(CallbackQueryHandler(menu_callback, pattern='menu_'))
     application.add_handler(CallbackQueryHandler(submenu_callback, pattern='linux_'))
     application.add_handler(CallbackQueryHandler(submenu_callback, pattern='hacking_'))
@@ -253,7 +259,6 @@ def main():
     application.add_handler(CallbackQueryHandler(submenu_callback, pattern='malware_'))
     application.add_handler(CallbackQueryHandler(menu_callback, pattern='back_to_menu'))
 
-    # Iniciamos el bot para que comience a escuchar mensajes
     application.run_polling()
 
 if __name__ == '__main__':
