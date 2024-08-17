@@ -1,10 +1,9 @@
 import os
 import sqlite3
-import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from dotenv import load_dotenv
-from database import init_db, obtener_secciones, obtener_articulos, obtener_contenido_articulo
+from database import init_db, obtener_secciones, obtener_articulos, obtener_contenido_articulo, agregar_articulo
 
 # Cargar las variables de entorno
 load_dotenv()
@@ -13,8 +12,8 @@ TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 # Inicializar la base de datos
 init_db()
 
-# Variables globales para manejar la creación de artículos
-contexto_actual = ""
+# Diccionario para manejar la creación de artículos por usuario
+estado_creacion = {}
 
 # Función para manejar el comando /menu
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -76,46 +75,46 @@ async def articulo_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # Función para manejar la creación de artículos
 async def manejar_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global contexto_actual
+    user_id = update.message.from_user.id
 
-    if contexto_actual == 'crear_articulo':
-        if 'titulo_articulo' not in context.user_data:
+    if user_id in estado_creacion:
+        estado = estado_creacion[user_id]
+
+        if estado['estado'] == 'esperando_titulo':
             titulo = update.message.text.strip()
             if len(titulo) > 50:
                 await update.message.reply_text("❌ El título es demasiado largo. Debe tener menos de 50 caracteres.")
-            elif obtener_articulos(context.user_data['seccion_actual']).count(titulo) > 0:
+            elif obtener_articulos(estado['seccion_actual']).count(titulo) > 0:
                 await update.message.reply_text("❌ El título ya existe. Elige otro.")
             elif "http://" in titulo or "https://" in titulo:
                 await update.message.reply_text("❌ No se permiten enlaces en el título.")
             else:
-                context.user_data['titulo_articulo'] = titulo
+                estado_creacion[user_id]['titulo_articulo'] = titulo
+                estado_creacion[user_id]['estado'] = 'esperando_contenido'
                 await update.message.reply_text("📝 Ahora envía el contenido del artículo.")
-        else:
+        elif estado['estado'] == 'esperando_contenido':
             contenido = update.message.text.strip()
             if "http://" in contenido or "https://" in contenido:
                 await update.message.reply_text("❌ No se permiten enlaces en el contenido.")
             else:
                 # Guardar el artículo
-                seccion = context.user_data['seccion_actual']
-                titulo = context.user_data['titulo_articulo']
-                conn = sqlite3.connect('tuxsentinel.db')
-                cursor = conn.cursor()
-                cursor.execute("INSERT INTO articulos (seccion_id, titulo, contenido) VALUES ((SELECT id FROM secciones WHERE nombre = ?), ?, ?)", 
-                               (seccion, titulo, contenido))
-                conn.commit()
-                conn.close()
+                seccion = estado_creacion[user_id]['seccion_actual']
+                titulo = estado_creacion[user_id]['titulo_articulo']
+                agregar_articulo(seccion, titulo, contenido)
 
                 await update.message.reply_text(f"✅ ¡Artículo '{titulo}' añadido a la sección {seccion}!")
-                contexto_actual = ""
-                context.user_data.pop('titulo_articulo')
+                del estado_creacion[user_id]  # Resetear el estado del usuario
 
 # Función para manejar la selección de botones
 async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
+    user_id = query.from_user.id
 
     if query.data == 'crear_articulo':
-        global contexto_actual
-        contexto_actual = 'crear_articulo'
+        estado_creacion[user_id] = {
+            'estado': 'esperando_titulo',
+            'seccion_actual': context.user_data['seccion_actual']
+        }
         await query.edit_message_text(
             text="✏️ Por favor, envía el título del artículo (máximo 50 caracteres):",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver al Menú Principal", callback_data='back_to_menu')]])
@@ -133,6 +132,7 @@ def main():
     application.add_handler(CommandHandler("menu", menu))
     application.add_handler(CallbackQueryHandler(menu_callback, pattern='menu_'))
     application.add_handler(CallbackQueryHandler(submenu_callback, pattern='articulo_'))
+    application.add_handler(CallbackQueryHandler(submenu_callback, pattern='crear_articulo'))
     application.add_handler(CallbackQueryHandler(menu, pattern='back_to_menu'))
 
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensajes))
