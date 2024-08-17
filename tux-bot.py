@@ -63,8 +63,8 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'menu_ciberseguridad':
         keyboard = [
             [InlineKeyboardButton("📘 Conceptos Básicos", callback_data='ciberseguridad_conceptos')],
-            [InlineKeyboardButton("✅ Buenas Prácticas", callback_data='ciberseguridad_practicas')],
-            [InlineKeyboardButton("📰 Noticias Recientes", callback_data='ciberseguridad_noticias')],
+            [InlineKeyboardButton("🔵 Blue Team", callback_data='ciberseguridad_blue_team')],
+            [InlineKeyboardButton("🔴 Red Team", callback_data='ciberseguridad_red_team')],
             [InlineKeyboardButton("🔙 Volver", callback_data='back_to_menu')]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -190,25 +190,36 @@ async def submenu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                  "Estos son los pilares fundamentales sobre los que se construye la seguridad en la información.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_ciberseguridad')]])
         )
-    elif query.data == 'ciberseguridad_practicas':
+    elif query.data == 'ciberseguridad_blue_team':
         await query.edit_message_text(
-            text="✅ **Buenas Prácticas en Ciberseguridad**:\n\n"
-                 "🔑 **Usa contraseñas fuertes**: Combina letras, números y símbolos, y cámbialas regularmente.\n"
-                 "🔑 **Habilita la autenticación de dos factores (2FA)**: Añade una capa extra de seguridad a tus cuentas.\n"
-                 "🔑 **Mantén el software actualizado**: Instala las actualizaciones de seguridad tan pronto estén disponibles.\n"
-                 "🔑 **Realiza copias de seguridad regularmente**: Protege tus datos contra pérdida o corrupción.\n"
-                 "🔑 **Educa a los usuarios**: La formación es clave para evitar ataques de ingeniería social.\n\n"
-                 "Seguir estas prácticas ayudará a protegerte contra las amenazas más comunes.",
+            text="🔵 **Blue Team**:\n\n"
+                 "El Blue Team es el equipo responsable de defender y proteger la infraestructura de TI "
+                 "de una organización contra ataques y amenazas cibernéticas. Su objetivo principal es "
+                 "garantizar la seguridad operativa y responder rápidamente a cualquier incidente.\n\n"
+                 "📚 **Certificaciones para Blue Team**:\n"
+                 "- *Para Principiantes*:\n"
+                 "  - **CompTIA Security+**: Introducción a los conceptos de seguridad.\n"
+                 "  - **Certified Ethical Hacker (CEH)**: Funda tu conocimiento en técnicas de defensa.\n"
+                 "- *Para Profesionales*:\n"
+                 "  - **Certified Information Systems Security Professional (CISSP)**: Certificación avanzada para gestores de seguridad.\n"
+                 "  - **GIAC Certified Incident Handler (GCIH)**: Especialización en respuesta a incidentes y manejo de amenazas.\n\n"
+                 "Los miembros del Blue Team trabajan incansablemente para mantener la seguridad y estabilidad de la organización.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_ciberseguridad')]])
         )
-    elif query.data == 'ciberseguridad_noticias':
+    elif query.data == 'ciberseguridad_red_team':
         await query.edit_message_text(
-            text="📰 **Noticias Recientes en Ciberseguridad**:\n\n"
-                 "🔍 Aquí te dejamos algunos titulares recientes en el ámbito de la ciberseguridad:\n"
-                 "- **Nuevo ataque de ransomware afecta a miles de empresas en todo el mundo**.\n"
-                 "- **Vulnerabilidad crítica descubierta en software ampliamente utilizado**.\n"
-                 "- **Aumento de ataques de phishing durante la pandemia**.\n\n"
-                 "Mantente al día con las últimas noticias para estar siempre protegido.",
+            text="🔴 **Red Team**:\n\n"
+                 "El Red Team se especializa en simular ataques reales para probar las defensas de una organización. "
+                 "Su objetivo es identificar vulnerabilidades que puedan ser explotadas por adversarios y ayudar al "
+                 "Blue Team a fortalecer la seguridad.\n\n"
+                 "📚 **Certificaciones para Red Team**:\n"
+                 "- *Para Principiantes*:\n"
+                 "  - **CompTIA PenTest+**: Introducción al testing de penetración.\n"
+                 "  - **eLearnSecurity Junior Penetration Tester (eJPT)**: Certificación inicial en pruebas de penetración.\n"
+                 "- *Para Profesionales*:\n"
+                 "  - **Offensive Security Certified Professional (OSCP)**: Certificación rigurosa en pruebas de penetración.\n"
+                 "  - **GIAC Penetration Tester (GPEN)**: Enfoque avanzado en técnicas de penetración y explotación.\n\n"
+                 "El Red Team juega un papel crucial al exponer puntos débiles y mejorar las defensas de la organización.",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver", callback_data='menu_ciberseguridad')]])
         )
 
