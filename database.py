@@ -118,7 +118,6 @@ def obtener_articulo_id(titulo):
     conn.close()
     return articulo_id[0] if articulo_id else None
 
-
 def init_db():
     conn = sqlite3.connect('tuxsentinel.db')
     crear_tablas(conn)
