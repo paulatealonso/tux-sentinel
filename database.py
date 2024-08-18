@@ -18,11 +18,26 @@ def crear_tablas(conn):
             seccion_id INTEGER NOT NULL,
             titulo TEXT UNIQUE NOT NULL,
             contenido TEXT NOT NULL,
+            aprobado INTEGER DEFAULT 0,
             FOREIGN KEY (seccion_id) REFERENCES secciones (id)
         )
     ''')
 
     conn.commit()
+
+def agregar_columna_aprobado():
+    conn = sqlite3.connect('tuxsentinel.db')
+    cursor = conn.cursor()
+
+    # Comprobar si la columna 'aprobado' ya existe
+    cursor.execute("PRAGMA table_info(articulos)")
+    columnas = [info[1] for info in cursor.fetchall()]
+    if 'aprobado' not in columnas:
+        cursor.execute("ALTER TABLE articulos ADD COLUMN aprobado INTEGER DEFAULT 0")
+        conn.commit()
+        print("Columna 'aprobado' agregada correctamente.")
+
+    conn.close()
 
 def insertar_datos_iniciales(conn):
     cursor = conn.cursor()
@@ -50,7 +65,7 @@ def obtener_secciones():
 def obtener_articulos(seccion):
     conn = sqlite3.connect('tuxsentinel.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT titulo FROM articulos WHERE seccion_id = (SELECT id FROM secciones WHERE nombre = ?)", (seccion,))
+    cursor.execute("SELECT titulo FROM articulos WHERE seccion_id = (SELECT id FROM secciones WHERE nombre = ?) AND aprobado = 1", (seccion,))
     articulos = [row[0] for row in cursor.fetchall()]
     conn.close()
     return articulos
@@ -67,14 +82,37 @@ def agregar_articulo(seccion, titulo, contenido):
     conn = sqlite3.connect('tuxsentinel.db')
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO articulos (seccion_id, titulo, contenido) VALUES ((SELECT id FROM secciones WHERE nombre = ?), ?, ?)",
+        "INSERT INTO articulos (seccion_id, titulo, contenido, aprobado) VALUES ((SELECT id FROM secciones WHERE nombre = ?), ?, ?, 0)",
         (seccion, titulo, contenido)
     )
+    conn.commit()
+    conn.close()
+
+def obtener_articulos_pendientes():
+    conn = sqlite3.connect('tuxsentinel.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, seccion_id, titulo, contenido FROM articulos WHERE aprobado = 0")
+    articulos = cursor.fetchall()
+    conn.close()
+    return articulos
+
+def aprobar_articulo(articulo_id):
+    conn = sqlite3.connect('tuxsentinel.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE articulos SET aprobado = 1 WHERE id = ?", (articulo_id,))
+    conn.commit()
+    conn.close()
+
+def eliminar_articulo(articulo_id):
+    conn = sqlite3.connect('tuxsentinel.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM articulos WHERE id = ?", (articulo_id,))
     conn.commit()
     conn.close()
 
 def init_db():
     conn = sqlite3.connect('tuxsentinel.db')
     crear_tablas(conn)
+    agregar_columna_aprobado()  # Esta llamada sólo agrega la columna si es necesario
     insertar_datos_iniciales(conn)
     conn.close()
