@@ -3,7 +3,7 @@ import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from dotenv import load_dotenv
-from database import init_db, obtener_secciones, obtener_articulos, obtener_contenido_articulo, agregar_articulo, obtener_articulos_pendientes, aprobar_articulo, eliminar_articulo
+from database import init_db, obtener_secciones, obtener_articulos, obtener_contenido_articulo, agregar_articulo, obtener_articulos_pendientes, aprobar_articulo, eliminar_articulo, obtener_articulo_id
 
 # Cargar las variables de entorno
 load_dotenv()
@@ -94,7 +94,7 @@ async def iniciar_creacion_articulo(update: Update, context: ContextTypes.DEFAUL
         reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🔙 Volver al Menú Principal", callback_data='back_to_menu')]])
     )
 
-# Función para manejar la creación de artículos
+# Función para manejar la creación de artículos y notificar al administrador
 async def manejar_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if 'contexto_actual' in context.user_data and context.user_data['contexto_actual'] == 'crear_articulo':
         if 'titulo_articulo' not in context.user_data:
@@ -113,37 +113,36 @@ async def manejar_mensajes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             if "http://" in contenido or "https://" in contenido:
                 await update.message.reply_text("❌ No se permiten enlaces en el contenido.")
             else:
-                # Guardar el artículo sin aprobar
                 seccion = context.user_data['seccion_actual']
                 titulo = context.user_data['titulo_articulo']
-                agregar_articulo(seccion, titulo, contenido)
+                try:
+                    agregar_articulo(seccion, titulo, contenido)
 
-                await update.message.reply_text(f"✅ ¡Artículo '{titulo}' enviado para su aprobación!")
-                
-                # Resetear contexto
-                context.user_data.pop('titulo_articulo', None)
-                context.user_data.pop('contexto_actual', None)
+                    await update.message.reply_text(f"✅ ¡Artículo '{titulo}' enviado para su aprobación!")
+                    
+                    # Notificar al administrador con contenido completo y botones
+                    articulo_id = obtener_articulo_id(titulo)  # Función que obtendrá el ID del artículo recién agregado
+                    texto_notificacion = (
+                        f"📝 **Nuevo artículo pendiente de aprobación**\n\n"
+                        f"**Sección:** {seccion}\n"
+                        f"**Título:** {titulo}\n\n"
+                        f"**Contenido:**\n{contenido}"
+                    )
+                    botones = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("✅ Aprobar", callback_data=f"aprobar_{articulo_id}")],
+                        [InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar_{articulo_id}")]
+                    ])
+                    await context.bot.send_message(chat_id=ADMIN_USER_ID, text=texto_notificacion, reply_markup=botones)
 
-                # Notificar al administrador
-                await context.bot.send_message(chat_id=ADMIN_USER_ID, text=f"Nuevo artículo pendiente de aprobación en la sección {seccion}: '{titulo}'")
+                    # Resetear contexto
+                    context.user_data.pop('titulo_articulo', None)
+                    context.user_data.pop('contexto_actual', None)
 
-# Función para manejar la aprobación de artículos por parte del administrador
-async def manejar_aprobacion(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    articulos_pendientes = obtener_articulos_pendientes()
-    
-    if not articulos_pendientes:
-        await update.message.reply_text("No hay artículos pendientes de aprobación.")
-        return
+                except sqlite3.IntegrityError:
+                    # Este mensaje se muestra si, por alguna razón, se intenta insertar un artículo con un título duplicado.
+                    await update.message.reply_text("❌ Error: El título del artículo ya existe. Por favor, elige otro título.")
+                    context.user_data.pop('titulo_articulo', None)
 
-    for articulo in articulos_pendientes:
-        articulo_id, seccion_id, titulo, contenido = articulo
-        await update.message.reply_text(
-            f"📝 **Nuevo artículo pendiente de aprobación**:\n\n**Título:** {titulo}\n\n**Contenido:**\n{contenido}",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("✅ Aprobar", callback_data=f"aprobar_{articulo_id}")],
-                [InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar_{articulo_id}")]
-            ])
-        )
 
 # Función para manejar la aprobación de un artículo
 async def aprobar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -153,13 +152,34 @@ async def aprobar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer("Artículo aprobado con éxito.")
     await query.edit_message_reply_markup(reply_markup=None)
 
-# Aquí se debería implementar la función rechazar_callback
+# Función para manejar el rechazo de un artículo
 async def rechazar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     articulo_id = int(query.data.replace('rechazar_', ''))
     eliminar_articulo(articulo_id)
     await query.answer("Artículo rechazado y eliminado.")
     await query.edit_message_reply_markup(reply_markup=None)
+
+# Función para manejar la lista de artículos pendientes a través del comando /aprobar
+async def manejar_aprobacion(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    articulos_pendientes = obtener_articulos_pendientes()
+    
+    if not articulos_pendientes:
+        await update.message.reply_text("No hay artículos pendientes de aprobación.")
+        return
+
+    for articulo in articulos_pendientes:
+        articulo_id, seccion_id, titulo, contenido = articulo
+        texto_notificacion = (
+            f"📝 **Artículo pendiente de aprobación**\n\n"
+            f"**Título:** {titulo}\n\n"
+            f"**Contenido:**\n{contenido}"
+        )
+        botones = InlineKeyboardMarkup([
+            [InlineKeyboardButton("✅ Aprobar", callback_data=f"aprobar_{articulo_id}")],
+            [InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar_{articulo_id}")]
+        ])
+        await update.message.reply_text(texto_notificacion, reply_markup=botones)
 
 # Función principal
 def main():

@@ -110,6 +110,15 @@ def eliminar_articulo(articulo_id):
     conn.commit()
     conn.close()
 
+def obtener_articulo_id(titulo):
+    conn = sqlite3.connect('tuxsentinel.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM articulos WHERE titulo = ?", (titulo,))
+    articulo_id = cursor.fetchone()
+    conn.close()
+    return articulo_id[0] if articulo_id else None
+
+
 def init_db():
     conn = sqlite3.connect('tuxsentinel.db')
     crear_tablas(conn)
